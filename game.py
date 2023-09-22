@@ -13,18 +13,19 @@ class Game(tk.Frame):
 
     def game(self, difficulty):
         """This is a simple game to guess a letter from the alphabet"""
-        correct = 0
         letters = []
         original_story = self.gerneate_story()
         story = original_story
         story_lowercase = story.lower()
-        if difficulty < 3:
+        if  difficulty < 3:
             replacement = "_"
         elif difficulty < 5:
             replacement = ""
         else:
             print("Invalid difficulty level. Please try again.")
             return
+
+        replacement = "_" # Game will always use underscores for now
 
         for i in range(difficulty): # This loop generates a list of random letters for testing purposes we will use a and b
             ascii_x = random.randrange(97, 123)
@@ -43,10 +44,12 @@ class Game(tk.Frame):
     def create_start_widgets(self):
         self.barrier = tk.Label(self, text="Welcome to the Missing Letter Game!")
         self.barrier.pack(side="top")
-        self.hi_there = tk.Button(self)
-        self.hi_there["text"] = "Play Game\n(click me)"
-        self.hi_there["command"] = lambda : self.game(2) #Difficulty is currently set to 2 for testing purposes
-        self.hi_there.pack(side="top")
+        self.start_button = tk.Button(self)
+        self.start_button["text"] = "Play Game\n(click me)"
+        self.start_button["command"] = lambda : self.game(self.difficulty.get()) #Grabs difficulty from the slider
+        self.start_button.pack(side="top")
+        self.difficulty = tk.Scale(self, from_=1, to=10, orient=tk.HORIZONTAL)
+        self.difficulty.pack(side="top")
 
         self.quit = tk.Button(self, text="QUIT", fg="red",
                             command=self.master.destroy)
@@ -67,13 +70,13 @@ class Game(tk.Frame):
         answer = self.answer_box.get()
         if answer in letters:
             self.update_story(answer, original_story)
-            self.barrier.config(text="You guessed it right!")
+            self.barrier.config(text="You guessed it right!", fg="green")
             try:
                 self.answer_box.delete(0, tk.END)
             except tk.TclError:
                 pass
         else:
-            self.barrier.config(text="Try again!")
+            self.barrier.config(text="Try again!", fg="red")
             self.answer_box.delete(0, tk.END)
 
     def update_story(self, answer, original_story):
@@ -100,7 +103,8 @@ class Game(tk.Frame):
 
     def remove_start_widgets(self):
         self.barrier.config(text="")
-        self.hi_there.destroy()
+        self.start_button.destroy()
+        self.difficulty.destroy()
         self.quit.destroy()
 
     def gerneate_story(self):
