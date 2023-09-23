@@ -16,16 +16,13 @@ class Game(tk.Frame):
         letters = []
         original_story = self.gerneate_story()
         story = original_story
-        story_lowercase = story.lower()
         if  difficulty <= 5:
             replacement = "_"
-        elif difficulty < 5:
+        elif difficulty <= 10:
             replacement = ""
         else:
             print("Invalid difficulty level. Please try again.")
             return
-
-        replacement = "_" # Game will always use underscores for now
 
         for i in range(difficulty): # This loop generates a list of random letters for testing purposes we will use a and b
             ascii_x = random.randrange(97, 123)
@@ -34,13 +31,25 @@ class Game(tk.Frame):
             else:
                 i -= 1
 
-            for i in story_lowercase:
-                if i in letters:
-                    story = story.replace(i, replacement)
-                    story = story.replace(i.upper(), replacement)
+        story = self.replace_letters(original_story, letters, replacement)
 
-        self.create_game_widgets(story, letters, original_story)
+        self.create_game_widgets(story, original_story, letters, replacement)
         
+    def replace_letters(self, orignal_story, letters, replacement):
+        """
+        This function replaces all letters in the story with the replacement character
+        """
+        print(letters)
+        story = orignal_story
+        for letter in letters:
+            story = story.replace(letter, replacement)
+            story = story.replace(letter.upper(), replacement)
+
+        if not letters:
+            story = orignal_story
+        
+        return story
+
     def create_start_widgets(self):
         self.barrier = tk.Label(self, text="Welcome to the Missing Letter Game!")
         self.barrier.pack(side="top")
@@ -55,22 +64,22 @@ class Game(tk.Frame):
                             command=self.master.destroy)
         self.quit.pack(side="bottom")
 
-    def create_game_widgets(self, story, letters, original_story):
+    def create_game_widgets(self, story, original_story, letters, replacement):
         self.remove_start_widgets()
         self.story_box = tk.Text(self, height=12, width=95)
         self.story_box.pack(side="top")
         self.story_box.insert(tk.END, story)
         self.story_box.config(state=tk.DISABLED)
-        self.answer_box = tk.Entry(self, width=95)
+        self.answer_box = tk.Entry(self, width=1)
         self.answer_box.pack(side="top")
-        self.submit = tk.Button(self, text="Submit", fg="green", command=lambda: self.check_answer(letters, original_story))
+        self.submit = tk.Button(self, text="Submit", fg="green", command=lambda: self.check_answer(original_story, letters, replacement))
         self.submit.pack(side="top")
 
-    def check_answer(self, letters, original_story):
-        answer = self.answer_box.get()
+    def check_answer(self, oringal_story, letters, replacement):
+        answer = self.answer_box.get().lower()
         if answer in letters:
-            self.update_story(answer, original_story)
             self.barrier.config(text="You guessed it right!", fg="green")
+            self.update_story(oringal_story, answer, letters, replacement)
             try:
                 self.answer_box.delete(0, tk.END)
             except tk.TclError:
@@ -79,20 +88,15 @@ class Game(tk.Frame):
             self.barrier.config(text="Try again!", fg="red")
             self.answer_box.delete(0, tk.END)
 
-    def update_story(self, answer, original_story):
+    def update_story(self, orignal_story, answer, letters, replacement):
         story = self.story_box.get("1.0", tk.END)
-        i = 0
-        while i < len(story):
-            if story[i] == "_" and original_story[i] == answer:
-                story = story[:i] + answer + story[i+1:]
-            if story[i] == "_" and original_story[i] == answer.upper():
-                story = story[:i] + answer.upper() + story[i+1:]
-            i += 1
+        letters.remove(answer)
+        story = self.replace_letters(orignal_story, letters, replacement)
         self.story_box.config(state=tk.NORMAL)
         self.story_box.delete("1.0", tk.END)
         self.story_box.insert(tk.END, story)
         self.story_box.config(state=tk.DISABLED)
-        if "_" not in story:
+        if len(letters) == 0:
             self.barrier.config(text="You won!")
             self.answer_box.destroy()
             self.submit.destroy()
