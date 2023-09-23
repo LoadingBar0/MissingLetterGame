@@ -39,7 +39,6 @@ class Game(tk.Frame):
         """
         This function replaces all letters in the story with the replacement character
         """
-        print(letters)
         story = orignal_story
         for letter in letters:
             story = story.replace(letter, replacement)
