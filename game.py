@@ -1,6 +1,8 @@
 import random
 import tkinter as tk
 
+guesses = 3
+
 class Game(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -65,20 +67,28 @@ class Game(tk.Frame):
 
     def create_game_widgets(self, story, original_story, letters, replacement):
         self.remove_start_widgets()
+        self.barrier = tk.Label(self, text="Guess a letter!")
+        self.remaining = tk.Label(self, text="Remaining letters: " + str(len(letters)))
+        self.remaining.pack(side="top")
         self.story_box = tk.Text(self, height=12, width=95)
         self.story_box.pack(side="top")
         self.story_box.insert(tk.END, story)
         self.story_box.config(state=tk.DISABLED)
-        self.answer_box = tk.Entry(self, width=1)
+        self.answer_box = tk.Entry(self, width=2)
         self.answer_box.pack(side="top")
         self.submit = tk.Button(self, text="Submit", fg="green", command=lambda: self.check_answer(original_story, letters, replacement))
         self.submit.pack(side="top")
 
     def check_answer(self, oringal_story, letters, replacement):
+        global guesses #This is the number of guesses the player has left I need to find a way to do this without using a global variable but for now this will do
         answer = self.answer_box.get().lower()
+        if len(answer) > 1:
+            self.barrier.config(text="Please enter only one letter at a time!", fg="red")
+            self.answer_box.delete(0, tk.END)
+            return
         if answer in letters:
             self.barrier.config(text="You guessed it right!", fg="green")
-            self.update_story(oringal_story, answer, letters, replacement)
+            self.update_game(oringal_story, answer, letters, replacement)
             try:
                 self.answer_box.delete(0, tk.END)
             except tk.TclError:
@@ -86,11 +96,24 @@ class Game(tk.Frame):
         else:
             self.barrier.config(text="Try again!", fg="red")
             self.answer_box.delete(0, tk.END)
+            self.update_guesses()
 
-    def update_story(self, orignal_story, answer, letters, replacement):
+    def update_guesses(self):
+        global guesses #This is the number of guesses the player has left I need to find a way to do this without using a global variable but for now this will do
+        guesses -= 1
+        if guesses == 0:
+            self.barrier.config(text="You lost!")
+            self.answer_box.destroy()
+            self.submit.destroy()
+            self.quit = tk.Button(self, text="QUIT", fg="red",
+                            command=self.master.destroy)
+            self.quit.pack(side="bottom")
+
+    def update_game(self, orignal_story, answer, letters, replacement):
         story = self.story_box.get("1.0", tk.END)
         letters.remove(answer)
         story = self.replace_letters(orignal_story, letters, replacement)
+        self.remaining.config(text="Remaining letters: " + str(len(letters)))
         self.story_box.config(state=tk.NORMAL)
         self.story_box.delete("1.0", tk.END)
         self.story_box.insert(tk.END, story)
