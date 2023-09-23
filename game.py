@@ -17,7 +17,7 @@ class Game(tk.Frame):
         original_story = self.gerneate_story()
         story = original_story
         story_lowercase = story.lower()
-        if  difficulty < 3:
+        if  difficulty <= 5:
             replacement = "_"
         elif difficulty < 5:
             replacement = ""
