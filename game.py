@@ -65,7 +65,7 @@ class Game(tk.Frame):
                             command=self.master.destroy)
         self.quit.pack(side="bottom")
 
-    def create_game_widgets(self, story, original_story, letters, replacement):
+    def create_game_widgets(self, story, letters, replacement):
         self.remove_start_widgets()
         self.barrier = tk.Label(self, text="Guess a letter!")
         self.remaining = tk.Label(self, text="Remaining letters: " + str(len(letters)))
@@ -76,7 +76,7 @@ class Game(tk.Frame):
         self.story_box.config(state=tk.DISABLED)
         self.answer_box = tk.Entry(self, width=2)
         self.answer_box.pack(side="top")
-        self.submit = tk.Button(self, text="Submit", fg="green", command=lambda: self.check_answer(original_story, letters, replacement))
+        self.submit = tk.Button(self, text="Submit", fg="green", command=lambda: self.check_answer(letters, replacement))
         self.submit.pack(side="top")
 
     def check_answer(self, letters, replacement):
@@ -112,7 +112,7 @@ class Game(tk.Frame):
     def update_game(self, answer, letters, replacement):
         story = self.story_box.get("1.0", tk.END)
         letters.remove(answer)
-        story = self.replace_letters(STORY, letters, replacement)
+        story = self.replace_letters(letters, replacement)
         self.remaining.config(text="Remaining letters: " + str(len(letters)))
         self.story_box.config(state=tk.NORMAL)
         self.story_box.delete("1.0", tk.END)
