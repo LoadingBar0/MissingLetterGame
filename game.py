@@ -16,7 +16,7 @@ class Game(tk.Frame):
     def game(self, difficulty):
         """This is a simple game to guess a letter from the alphabet"""
         letters = []
-        original_story = self.gerneate_story()
+        original_story = self.pick_story()
         story = original_story
         if  difficulty <= 5:
             replacement = "_"
@@ -72,6 +72,9 @@ class Game(tk.Frame):
         self.remaining.pack(side="top")
         self.story_box = tk.Text(self, height=12, width=95)
         self.story_box.pack(side="top")
+        self.scroll = tk.Scrollbar(self, command=self.story_box.yview)
+        self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.story_box.config(yscrollcommand=self.scroll.set)
         self.story_box.insert(tk.END, story)
         self.story_box.config(state=tk.DISABLED)
         self.answer_box = tk.Entry(self, width=2)
@@ -133,12 +136,20 @@ class Game(tk.Frame):
         self.difficulty.destroy()
         self.quit.destroy()
 
-    def gerneate_story(self):
+    def pick_story(self):
         """
-        This function generates a story using Chat GTP api.
+        This function will pick a story from a list of stories sotrored in a file
         """
-        sample = "In the quaint village of Everwood, nestled beneath the towering mountains, lived a gifted inventor named Felix Whizbang. His workshop, a chaotic blend of gears and gizmos, was the heart of the town. One day, a mysterious portal materialized before him, revealing Zara, an adventurer with a glowing amulet.\n\nZara explained the amulet's purpose: to find the scattered ingredients for the legendary " + '"Elixir of Allure, "' + "a potion that bestowed irresistible charm. Together, they embarked on a whimsical quest through the Fantasylands, facing riddles and befriending fantastical creatures.\n\nTheir journey not only uncovered the elixir's secret but also revealed the true magic lay in the bonds of friendship forged along the way. In the end, they shared the elixir's charm with their village, making Everwood a place where even eccentric inventions found a warm welcome."
-        return sample # For now we will use a sample story
+        story = ""
+        story_number = random.randrange(0, 101, 2)
+        story_file = open("stories", "r")
+
+        for i, line in enumerate(story_file):
+            if i == story_number:
+                story = line
+        story_file.close()
+        story = story.replace("\\n", "\n")
+        return story
         
 
 def main():
