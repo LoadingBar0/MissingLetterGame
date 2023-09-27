@@ -16,8 +16,8 @@ class Game(tk.Frame):
     def game(self, difficulty):
         """This is a simple game to guess a letter from the alphabet"""
         letters = []
-        original_story = self.pick_story()
-        story = original_story
+        self.pick_story()
+        story = STORY
         if  difficulty <= 5:
             replacement = "_"
         elif difficulty <= 10:
@@ -32,24 +32,25 @@ class Game(tk.Frame):
                 letters += chr(ascii_x)
             else:
                 i -= 1
-
-        story = self.replace_letters(original_story, letters, replacement)
-
-        self.create_game_widgets(story, original_story, letters, replacement)
         
-    def replace_letters(self, orignal_story, letters, replacement):
+        self.replace_letters(letters, replacement)
+
+        self.create_game_widgets(letters, replacement)
+        
+    def replace_letters(self, letters, replacement):
         """
         This function replaces all letters in the story with the replacement character
         """
-        story = orignal_story
+        global STORY_WITHOUT_LETTERS
+        story = STORY
         for letter in letters:
             story = story.replace(letter, replacement)
             story = story.replace(letter.upper(), replacement)
 
         if not letters:
-            story = orignal_story
+            story = STORY
         
-        return story
+        STORY_WITHOUT_LETTERS = story
 
     def create_start_widgets(self):
         self.barrier = tk.Label(self, text="Welcome to the Missing Letter Game!")
@@ -65,7 +66,7 @@ class Game(tk.Frame):
                             command=self.master.destroy)
         self.quit.pack(side="bottom")
 
-    def create_game_widgets(self, story, original_story, letters, replacement):
+    def create_game_widgets(self, letters, replacement):
         self.remove_start_widgets()
         self.barrier = tk.Label(self, text="Guess a letter!")
         self.remaining = tk.Label(self, text="Remaining letters: " + str(len(letters)))
@@ -75,14 +76,14 @@ class Game(tk.Frame):
         self.scroll = tk.Scrollbar(self, command=self.story_box.yview)
         self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.story_box.config(yscrollcommand=self.scroll.set)
-        self.story_box.insert(tk.END, story)
+        self.smooth_story_insert()
         self.story_box.config(state=tk.DISABLED)
         self.answer_box = tk.Entry(self, width=2)
         self.answer_box.pack(side="top")
-        self.submit = tk.Button(self, text="Submit", fg="green", command=lambda: self.check_answer(original_story, letters, replacement))
+        self.submit = tk.Button(self, text="Submit", fg="green", command=lambda: self.check_answer(letters, replacement))
         self.submit.pack(side="top")
 
-    def check_answer(self, oringal_story, letters, replacement):
+    def check_answer(self, letters, replacement):
         global guesses #This is the number of guesses the player has left I need to find a way to do this without using a global variable but for now this will do
         answer = self.answer_box.get().lower()
         if len(answer) > 1:
@@ -91,7 +92,7 @@ class Game(tk.Frame):
             return
         if answer in letters:
             self.barrier.config(text="You guessed it right!", fg="green")
-            self.update_game(oringal_story, answer, letters, replacement)
+            self.update_game(answer, letters, replacement)
             try:
                 self.answer_box.delete(0, tk.END)
             except tk.TclError:
@@ -100,6 +101,16 @@ class Game(tk.Frame):
             self.barrier.config(text="Try again!", fg="red")
             self.answer_box.delete(0, tk.END)
             self.update_guesses()
+    
+    def smooth_story_insert(self):
+        """
+        This function will insert the story into the text box one character at a time
+        """
+        story = STORY_WITHOUT_LETTERS
+        for i in range(len(story)):
+            self.story_box.insert(tk.END, story[i])
+            self.story_box.after(2)
+            self.story_box.update()
 
     def update_guesses(self):
         global guesses #This is the number of guesses the player has left I need to find a way to do this without using a global variable but for now this will do
@@ -112,10 +123,10 @@ class Game(tk.Frame):
                             command=self.master.destroy)
             self.quit.pack(side="bottom")
 
-    def update_game(self, orignal_story, answer, letters, replacement):
-        story = self.story_box.get("1.0", tk.END)
+    def update_game(self, answer, letters, replacement):
         letters.remove(answer)
-        story = self.replace_letters(orignal_story, letters, replacement)
+        self.replace_letters(letters, replacement)
+        story = STORY_WITHOUT_LETTERS
         self.remaining.config(text="Remaining letters: " + str(len(letters)))
         self.story_box.config(state=tk.NORMAL)
         self.story_box.delete("1.0", tk.END)
@@ -140,7 +151,8 @@ class Game(tk.Frame):
         """
         This function will pick a story from a list of stories sotrored in a file
         """
-        story = ""
+        global STORY
+        STORY = ""
         story_number = random.randrange(0, 101, 2)
         story_file = open("stories", "r")
 
@@ -148,8 +160,7 @@ class Game(tk.Frame):
             if i == story_number:
                 story = line
         story_file.close()
-        story = story.replace("\\n", "\n")
-        return story
+        STORY = story.replace("\\n", "\n")
         
 
 def main():
