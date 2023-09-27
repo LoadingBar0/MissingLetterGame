@@ -1,4 +1,5 @@
 import random
+import screeninfo
 import tkinter as tk
 
 guesses = 3
@@ -7,17 +8,42 @@ class Game(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master = master
-        self.pack()
+        self.pack(expand=True, fill=tk.BOTH)
         self.create_start_widgets()
-        self.master.geometry("800x600") # Sets the window size to 800x600 
+        self.height = self.getscreensize()[1]
+        self.width = self.getscreensize()[0]
+        self.master.geometry(str(self.width) + "x" + str(self.height))
+        self.width = self.winfo_width()
+        self.height = self.winfo_height()
         self.master.title("Missing Letter Game")
+        self.bind("<Return>", lambda x: self.check_answer())
+        self.bind("<Configure>", lambda x: self.resize())
         
+    def getscreensize(self):
+        """
+        This function will return the size of the screen
+        """
+        screen = screeninfo.get_monitors()[0]
+        return screen.width, screen.height
+    
+    def resize(self):
+        """
+        
+        """
+
+        
+
+
+    def scale(self, object, x1, y1, x2, y2):
+        """
+        Scales all ojects in the canvas
+        """
 
     def game(self, difficulty):
         """This is a simple game to guess a letter from the alphabet"""
         letters = []
         self.pick_story()
-        story = STORY
+
         if  difficulty <= 5:
             replacement = "_"
         elif difficulty <= 10:
@@ -41,16 +67,18 @@ class Game(tk.Frame):
         """
         This function replaces all letters in the story with the replacement character
         """
-        global STORY_WITHOUT_LETTERS
-        story = STORY
+        story = self.story
+
+        if not letters:
+            self.story = self.orignal_story
+            return
+        
         for letter in letters:
             story = story.replace(letter, replacement)
             story = story.replace(letter.upper(), replacement)
 
-        if not letters:
-            story = STORY
         
-        STORY_WITHOUT_LETTERS = story
+        self.story = story
 
     def create_start_widgets(self):
         self.barrier = tk.Label(self, text="Welcome to the Missing Letter Game!")
@@ -71,7 +99,7 @@ class Game(tk.Frame):
         self.barrier = tk.Label(self, text="Guess a letter!")
         self.remaining = tk.Label(self, text="Remaining letters: " + str(len(letters)))
         self.remaining.pack(side="top")
-        self.story_box = tk.Text(self, height=12, width=95)
+        self.story_box = tk.Text(self, height=12, width=95) #Sets the box to
         self.story_box.pack(side="top")
         self.scroll = tk.Scrollbar(self, command=self.story_box.yview)
         self.scroll.pack(side=tk.RIGHT, fill=tk.Y)
@@ -106,7 +134,7 @@ class Game(tk.Frame):
         """
         This function will insert the story into the text box one character at a time
         """
-        story = STORY_WITHOUT_LETTERS
+        story = self.story
         for i in range(len(story)):
             self.story_box.insert(tk.END, story[i])
             self.story_box.after(2)
@@ -126,19 +154,20 @@ class Game(tk.Frame):
     def update_game(self, answer, letters, replacement):
         letters.remove(answer)
         self.replace_letters(letters, replacement)
-        story = STORY_WITHOUT_LETTERS
+        story = self.story
         self.remaining.config(text="Remaining letters: " + str(len(letters)))
         self.story_box.config(state=tk.NORMAL)
         self.story_box.delete("1.0", tk.END)
         self.story_box.insert(tk.END, story)
         self.story_box.config(state=tk.DISABLED)
+        print(len(letters))
         if len(letters) == 0:
             self.barrier.config(text="You won!")
             self.answer_box.destroy()
             self.submit.destroy()
             self.quit = tk.Button(self, text="QUIT", fg="red",
                             command=self.master.destroy)
-            self.quit.pack(side="bottom")
+            self.quit.pack(side="top")
 
 
     def remove_start_widgets(self):
@@ -151,17 +180,14 @@ class Game(tk.Frame):
         """
         This function will pick a story from a list of stories sotrored in a file
         """
-        global STORY
-        STORY = ""
         story_number = random.randrange(0, 101, 2)
         story_file = open("stories", "r")
-
         for i, line in enumerate(story_file):
             if i == story_number:
                 story = line
         story_file.close()
-        STORY = story.replace("\\n", "\n")
-        
+        self.story = story.replace("\\n", "\n")
+        self.orignal_story = self.story
 
 def main():
     root = tk.Tk()
