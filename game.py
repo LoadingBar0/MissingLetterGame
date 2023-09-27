@@ -2,8 +2,6 @@ import random
 import screeninfo
 import tkinter as tk
 
-guesses = 3
-
 class Game(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -16,7 +14,7 @@ class Game(tk.Frame):
         self.width = self.winfo_width()
         self.height = self.winfo_height()
         self.master.title("Missing Letter Game")
-        self.bind("<Return>", lambda x: self.check_answer())
+        # self.bind("<Return>", lambda x: self.check_answer()) # This will be aused as a short cut to submit the answer Currently not working
         self.bind("<Configure>", lambda x: self.resize())
         
     def getscreensize(self):
@@ -28,20 +26,20 @@ class Game(tk.Frame):
     
     def resize(self):
         """
-        
+        Gets new window size when window is resized
         """
-
-        
-
+        # To be added later
 
     def scale(self, object, x1, y1, x2, y2):
         """
         Scales all ojects in the canvas
         """
+        # To be added later
 
     def game(self, difficulty):
         """This is a simple game to guess a letter from the alphabet"""
         letters = []
+        self.guesses = 3
         self.pick_story()
 
         if  difficulty <= 5:
@@ -112,7 +110,6 @@ class Game(tk.Frame):
         self.submit.pack(side="top")
 
     def check_answer(self, letters, replacement):
-        global guesses #This is the number of guesses the player has left I need to find a way to do this without using a global variable but for now this will do
         answer = self.answer_box.get().lower()
         if len(answer) > 1:
             self.barrier.config(text="Please enter only one letter at a time!", fg="red")
@@ -141,15 +138,14 @@ class Game(tk.Frame):
             self.story_box.update()
 
     def update_guesses(self):
-        global guesses #This is the number of guesses the player has left I need to find a way to do this without using a global variable but for now this will do
-        guesses -= 1
-        if guesses == 0:
+        self.guesses -= 1
+        if self.guesses == 0:
             self.barrier.config(text="You lost!")
             self.answer_box.destroy()
             self.submit.destroy()
             self.quit = tk.Button(self, text="QUIT", fg="red",
                             command=self.master.destroy)
-            self.quit.pack(side="bottom")
+            self.quit.pack(side="top")
 
     def update_game(self, answer, letters, replacement):
         letters.remove(answer)
